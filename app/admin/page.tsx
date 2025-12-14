@@ -15,16 +15,66 @@ export default async function AdminPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log("[v0] Admin page - User:", user?.id, user?.email)
+
   if (!user) {
     redirect("/auth/login")
   }
 
-  // Check if user is admin
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  // Check if user is admin with better error handling
+  const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
-  if (profile?.role !== "admin") {
+  console.log("[v0] Admin page - Profile query result:", { profile, error })
+
+  if (error) {
+    console.error("[v0] Error fetching profile:", error)
+    // Try to create profile if it doesn't exist
+    if (error.code === "PGRST116") {
+      const { error: insertError } = await supabase.from("profiles").insert({
+        id: user.id,
+        email: user.email!,
+        full_name: user.user_metadata?.full_name || user.email!.split("@")[0],
+        role: "user",
+      })
+
+      if (insertError) {
+        console.error("[v0] Error creating profile:", insertError)
+        return (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">Database Error</h1>
+              <p className="text-muted-foreground mb-4">Failed to load your profile. Error: {insertError.message}</p>
+              <Button asChild>
+                <Link href="/dashboard">Go to Dashboard</Link>
+              </Button>
+            </div>
+          </div>
+        )
+      }
+
+      // Redirect to dashboard since new users are not admin by default
+      redirect("/dashboard")
+    }
+
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Database Error</h1>
+          <p className="text-muted-foreground mb-4">Error querying profile: {error.message}</p>
+          <Button asChild>
+            <Link href="/dashboard">Go to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!profile || profile.role !== "admin") {
+    console.log("[v0] User is not admin, redirecting")
     redirect("/dashboard")
   }
+
+  console.log("[v0] Admin authenticated successfully")
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">

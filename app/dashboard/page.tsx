@@ -15,16 +15,21 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log("[v0] Dashboard - User:", user?.id, user?.email)
+
   if (!user) {
     redirect("/auth/login")
   }
 
   const { data: profile, error: profileError } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
+  console.log("[v0] Dashboard - Profile query:", { profile, error: profileError })
+
   let userProfile = profile
 
   // If profile doesn't exist, create it
   if (profileError || !profile) {
+    console.log("[v0] Dashboard - Creating new profile")
     const { data: newProfile, error: createError } = await supabase
       .from("profiles")
       .insert({
@@ -46,9 +51,12 @@ export default async function DashboardPage() {
         role: "user",
       }
     } else {
+      console.log("[v0] Dashboard - Profile created successfully")
       userProfile = newProfile
     }
   }
+
+  console.log("[v0] Dashboard - Final profile:", userProfile)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
