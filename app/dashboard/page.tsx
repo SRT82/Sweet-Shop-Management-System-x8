@@ -21,28 +21,34 @@ export default async function DashboardPage() {
 
   const { data: profile, error: profileError } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
+  let userProfile = profile
+
+  // If profile doesn't exist, create it
   if (profileError || !profile) {
-    const { error: createError } = await supabase.from("profiles").insert({
-      id: user.id,
-      email: user.email!,
-      full_name: user.user_metadata?.full_name || "",
-      role: "user",
-    })
+    const { data: newProfile, error: createError } = await supabase
+      .from("profiles")
+      .insert({
+        id: user.id,
+        email: user.email!,
+        full_name: user.user_metadata?.full_name || "",
+        role: "user",
+      })
+      .select()
+      .single()
 
     if (createError) {
       console.error("[v0] Dashboard profile creation error:", createError)
-    }
-
-    // Fetch the newly created profile
-    const { data: newProfile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-    if (!newProfile) {
-      // If still no profile, redirect to setup
-      redirect("/setup-admin")
+      // Use default values if creation fails
+      userProfile = {
+        id: user.id,
+        email: user.email!,
+        full_name: user.user_metadata?.full_name || "",
+        role: "user",
+      }
+    } else {
+      userProfile = newProfile
     }
   }
-
-  const userProfile = profile || { full_name: "", role: "user" }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
@@ -55,9 +61,9 @@ export default async function DashboardPage() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground hidden sm:inline">
-              Welcome, {userProfile.full_name || user.email}
+              Welcome, {userProfile?.full_name || user.email}
             </span>
-            {userProfile.role === "admin" && (
+            {userProfile?.role === "admin" && (
               <Button asChild variant="outline" size="sm">
                 <Link href="/admin">Admin Panel</Link>
               </Button>
