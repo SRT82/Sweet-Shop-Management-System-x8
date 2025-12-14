@@ -21,16 +21,27 @@ export function PurchaseHistory({ userId }: PurchaseHistoryProps) {
   }, [])
 
   const fetchPurchases = async () => {
-    const { data, error } = await supabase
-      .from("purchases")
-      .select("*, sweet:sweets(*)")
-      .eq("user_id", userId)
-      .order("purchase_date", { ascending: false })
+    try {
+      const { data, error } = await supabase
+        .from("purchases")
+        .select("*, sweet:sweets(*)")
+        .eq("user_id", userId)
+        .order("purchase_date", { ascending: false })
 
-    if (!error && data) {
-      setPurchases(data as Purchase[])
+      if (error) {
+        console.error("[v0] Error fetching purchases:", error)
+        setLoading(false)
+        return
+      }
+
+      if (data) {
+        setPurchases(data as Purchase[])
+      }
+    } catch (err) {
+      console.error("[v0] Exception fetching purchases:", err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   if (loading) {
@@ -79,11 +90,13 @@ export function PurchaseHistory({ userId }: PurchaseHistoryProps) {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Quantity: {purchase.quantity}</p>
-                  <p className="text-sm text-muted-foreground">Unit Price: ${purchase.sweet?.price.toFixed(2)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Unit Price: ${Number(purchase.sweet?.price).toFixed(2)}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold text-pink-600">${purchase.total_price.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-pink-600">${Number(purchase.total_price).toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>

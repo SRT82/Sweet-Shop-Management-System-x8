@@ -34,29 +34,60 @@ export function AdminSweets() {
   }, [])
 
   const fetchSweets = async () => {
-    const { data, error } = await supabase.from("sweets").select("*").order("name")
+    try {
+      const { data, error } = await supabase.from("sweets").select("*").order("name")
 
-    if (!error && data) {
-      setSweets(data)
+      if (error) {
+        console.error("[v0] Error fetching sweets:", error)
+        toast({
+          title: "Failed to load sweets",
+          description: error.message,
+          variant: "destructive",
+        })
+        setLoading(false)
+        return
+      }
+
+      if (data) {
+        setSweets(data)
+      }
+    } catch (err) {
+      console.error("[v0] Exception fetching sweets:", err)
+      toast({
+        title: "Failed to load sweets",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleDelete = async (sweet: Sweet) => {
-    const { error } = await supabase.from("sweets").delete().eq("id", sweet.id)
+    try {
+      const { error } = await supabase.from("sweets").delete().eq("id", sweet.id)
 
-    if (error) {
+      if (error) {
+        console.error("[v0] Delete error:", error)
+        toast({
+          title: "Delete failed",
+          description: error.message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Sweet deleted",
+          description: `${sweet.name} has been removed from the inventory`,
+        })
+        fetchSweets()
+      }
+    } catch (err) {
+      console.error("[v0] Delete exception:", err)
       toast({
         title: "Delete failed",
-        description: error.message,
+        description: "An unexpected error occurred",
         variant: "destructive",
       })
-    } else {
-      toast({
-        title: "Sweet deleted",
-        description: `${sweet.name} has been removed from the inventory`,
-      })
-      fetchSweets()
     }
     setDeleteSweet(null)
   }
@@ -103,7 +134,7 @@ export function AdminSweets() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Price</p>
-                  <p className="font-semibold text-indigo-600">${sweet.price.toFixed(2)}</p>
+                  <p className="font-semibold text-indigo-600">${Number(sweet.price).toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Stock</p>

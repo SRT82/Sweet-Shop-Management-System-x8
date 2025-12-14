@@ -29,7 +29,7 @@ export function PurchaseDialog({ sweet, userId, onClose, onSuccess }: PurchaseDi
   const { toast } = useToast()
   const supabase = createClient()
 
-  const totalPrice = (sweet.price * quantity).toFixed(2)
+  const totalPrice = (Number(sweet.price) * quantity).toFixed(2)
 
   const handlePurchase = async () => {
     if (quantity < 1 || quantity > sweet.stock) {
@@ -43,48 +43,60 @@ export function PurchaseDialog({ sweet, userId, onClose, onSuccess }: PurchaseDi
 
     setLoading(true)
 
-    // Insert purchase
-    const { error: purchaseError } = await supabase.from("purchases").insert({
-      user_id: userId,
-      sweet_id: sweet.id,
-      quantity,
-      total_price: Number.parseFloat(totalPrice),
-    })
+    try {
+      // Insert purchase
+      const { error: purchaseError } = await supabase.from("purchases").insert({
+        user_id: userId,
+        sweet_id: sweet.id,
+        quantity,
+        total_price: Number.parseFloat(totalPrice),
+      })
 
-    if (purchaseError) {
+      if (purchaseError) {
+        console.error("[v0] Purchase error:", purchaseError)
+        toast({
+          title: "Purchase failed",
+          description: purchaseError.message,
+          variant: "destructive",
+        })
+        setLoading(false)
+        return
+      }
+
+      // Update stock
+      const { error: updateError } = await supabase
+        .from("sweets")
+        .update({ stock: sweet.stock - quantity })
+        .eq("id", sweet.id)
+
+      if (updateError) {
+        console.error("[v0] Stock update error:", updateError)
+        toast({
+          title: "Stock update failed",
+          description: updateError.message,
+          variant: "destructive",
+        })
+        setLoading(false)
+        return
+      }
+
+      toast({
+        title: "Purchase successful!",
+        description: `You purchased ${quantity} ${sweet.name}(s) for $${totalPrice}`,
+      })
+
+      setLoading(false)
+      onClose()
+      onSuccess()
+    } catch (err) {
+      console.error("[v0] Purchase exception:", err)
       toast({
         title: "Purchase failed",
-        description: purchaseError.message,
+        description: "An unexpected error occurred",
         variant: "destructive",
       })
       setLoading(false)
-      return
     }
-
-    // Update stock
-    const { error: updateError } = await supabase
-      .from("sweets")
-      .update({ stock: sweet.stock - quantity })
-      .eq("id", sweet.id)
-
-    if (updateError) {
-      toast({
-        title: "Stock update failed",
-        description: updateError.message,
-        variant: "destructive",
-      })
-      setLoading(false)
-      return
-    }
-
-    toast({
-      title: "Purchase successful!",
-      description: `You purchased ${quantity} ${sweet.name}(s) for $${totalPrice}`,
-    })
-
-    setLoading(false)
-    onClose()
-    onSuccess()
   }
 
   return (

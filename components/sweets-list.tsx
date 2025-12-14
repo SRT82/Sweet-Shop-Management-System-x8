@@ -33,13 +33,24 @@ export function SweetsList({ userId }: SweetsListProps) {
   }, [searchQuery, selectedCategory, sweets])
 
   const fetchSweets = async () => {
-    const { data, error } = await supabase.from("sweets").select("*").order("name")
+    try {
+      const { data, error } = await supabase.from("sweets").select("*").order("name")
 
-    if (!error && data) {
-      setSweets(data)
-      setFilteredSweets(data)
+      if (error) {
+        console.error("[v0] Error fetching sweets:", error)
+        setLoading(false)
+        return
+      }
+
+      if (data) {
+        setSweets(data)
+        setFilteredSweets(data)
+      }
+    } catch (err) {
+      console.error("[v0] Exception fetching sweets:", err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const filterSweets = () => {
@@ -123,7 +134,7 @@ export function SweetsList({ userId }: SweetsListProps) {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-pink-600">${sweet.price.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-pink-600">${Number(sweet.price).toFixed(2)}</span>
                   <span className="text-sm text-muted-foreground">
                     {sweet.stock > 0 ? `${sweet.stock} in stock` : "Out of stock"}
                   </span>
