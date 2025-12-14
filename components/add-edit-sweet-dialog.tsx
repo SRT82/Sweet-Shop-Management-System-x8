@@ -94,6 +94,7 @@ export function AddEditSweetDialog({ sweet, onClose, onSuccess }: AddEditSweetDi
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
+                autoComplete="off"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
@@ -103,6 +104,7 @@ export function AddEditSweetDialog({ sweet, onClose, onSuccess }: AddEditSweetDi
               <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
+                autoComplete="off"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
@@ -117,6 +119,7 @@ export function AddEditSweetDialog({ sweet, onClose, onSuccess }: AddEditSweetDi
                   type="number"
                   step="0.01"
                   min="0"
+                  autoComplete="off"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   required
@@ -128,6 +131,7 @@ export function AddEditSweetDialog({ sweet, onClose, onSuccess }: AddEditSweetDi
                   id="stock"
                   type="number"
                   min="0"
+                  autoComplete="off"
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                   required
@@ -138,6 +142,7 @@ export function AddEditSweetDialog({ sweet, onClose, onSuccess }: AddEditSweetDi
               <Label htmlFor="category">Category *</Label>
               <Input
                 id="category"
+                autoComplete="off"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 required
@@ -149,6 +154,7 @@ export function AddEditSweetDialog({ sweet, onClose, onSuccess }: AddEditSweetDi
                 id="image_url"
                 type="url"
                 placeholder="/placeholder.svg?height=200&width=200"
+                autoComplete="url"
                 value={formData.image_url}
                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
               />

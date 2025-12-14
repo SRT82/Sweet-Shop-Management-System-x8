@@ -106,6 +106,7 @@ export default function SignupPage() {
                 placeholder="John Doe"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
                 required
               />
             </div>
@@ -117,6 +118,7 @@ export default function SignupPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
               />
             </div>
@@ -128,6 +130,7 @@ export default function SignupPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
                 minLength={6}
               />

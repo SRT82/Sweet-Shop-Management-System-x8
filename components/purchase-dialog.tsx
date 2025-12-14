@@ -114,6 +114,7 @@ export function PurchaseDialog({ sweet, userId, onClose, onSuccess }: PurchaseDi
               type="number"
               min={1}
               max={sweet.stock}
+              autoComplete="off"
               value={quantity}
               onChange={(e) => setQuantity(Number.parseInt(e.target.value) || 1)}
             />
