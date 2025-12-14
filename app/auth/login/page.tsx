@@ -25,22 +25,28 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      console.log("[v0] Starting login process")
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (signInError) {
+        console.log("[v0] Sign in error:", signInError)
         setError(signInError.message)
         setLoading(false)
         return
       }
 
       if (!data.user) {
+        console.log("[v0] No user data returned")
         setError("Failed to sign in. Please try again.")
         setLoading(false)
         return
       }
+
+      console.log("[v0] User signed in successfully:", data.user.email)
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -49,7 +55,7 @@ export default function LoginPage() {
         .single()
 
       if (profileError && profileError.code === "PGRST116") {
-        // Profile doesn't exist, create it
+        console.log("[v0] Profile not found, creating...")
         const { error: createError } = await supabase.from("profiles").insert({
           id: data.user.id,
           email: data.user.email!,
@@ -59,15 +65,19 @@ export default function LoginPage() {
 
         if (createError) {
           console.error("[v0] Profile creation error:", createError)
+        } else {
+          console.log("[v0] Profile created successfully")
         }
+      } else if (profile) {
+        console.log("[v0] Profile found:", profile.email, "role:", profile.role)
       }
 
-      router.push("/dashboard")
-      router.refresh()
+      console.log("[v0] Redirecting to dashboard...")
+      window.location.href = "/dashboard"
     } catch (err) {
+      console.error("[v0] Unexpected login error:", err)
       setError("An unexpected error occurred. Please try again.")
       setLoading(false)
-      console.error("[v0] Login error:", err)
     }
   }
 
